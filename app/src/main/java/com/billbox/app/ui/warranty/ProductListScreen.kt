@@ -38,6 +38,7 @@ import com.billbox.app.data.Product
 import com.billbox.app.ui.LocalContainer
 import com.billbox.app.ui.Routes
 import com.billbox.app.ui.components.EmptyState
+import com.billbox.app.ui.components.TabHeader
 import com.billbox.app.ui.components.StatusPill
 import com.billbox.app.ui.theme.StatusColors
 import com.billbox.app.util.Dates
@@ -73,7 +74,7 @@ fun ProductListScreen(nav: NavController) {
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).statusBarsPadding()) {
-            Text("Warranty", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 4.dp))
+            TabHeader("Warranty")
             val list = products ?: return@Column
             if (list.isEmpty()) {
                 EmptyState(

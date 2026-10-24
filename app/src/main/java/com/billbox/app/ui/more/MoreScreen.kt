@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.FileDownload
@@ -22,15 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.billbox.app.ui.Routes
+import com.billbox.app.ui.components.TabHeader
 
 @Composable
 fun MoreScreen(nav: NavController) {
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        Text("More", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 8.dp))
+        TabHeader("More")
         Entry(Icons.Filled.EventRepeat, "Recurring bills", "Utilities, rent, EMIs, subscriptions") { nav.navigate(Routes.RECURRING) }
         Entry(Icons.Filled.Insights, "Insights", "Where your money goes, month by month") { nav.navigate(Routes.INSIGHTS) }
         Entry(Icons.Filled.Category, "Categories and budgets", "Monthly limits with alerts at 80% and 100%") { nav.navigate(Routes.CATEGORIES) }
         Entry(Icons.Filled.FileDownload, "Export and tax pack", "PDF or Excel (CSV) for reimbursement and ITR") { nav.navigate(Routes.EXPORT) }
+        Entry(Icons.AutoMirrored.Filled.HelpOutline, "How to use BillBox", "Step-by-step guide to every feature") { nav.navigate(Routes.help()) }
         Entry(Icons.Filled.Settings, "Settings", "App lock, reminders, your data") { nav.navigate(Routes.SETTINGS) }
     }
 }

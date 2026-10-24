@@ -18,53 +18,59 @@ Upload the screenshots in file order. They are real screens from the app (debug 
 
 **App name** (30 max)
 ```
-BillBox: Bills & Warranty
+BillBox: Receipt & Warranty
 ```
+Alternative if you write the brand as two words (also matches searches for "bill"): `Bill Box: Receipt & Warranty`
 
 **Short description** (80 max)
 ```
-Scan bills, track warranties, get due-date reminders. Private and offline.
+Receipt scanner, warranty tracker & bill reminder. Save GST bills, offline.
 ```
 
 **Full description** (4000 max)
 ```
-BillBox keeps every bill, warranty card and due date in one place, so you never hunt for a receipt or miss a payment again.
+BillBox is a receipt scanner, warranty tracker and bill reminder in one simple app. Scan any bill or receipt, keep your warranty cards safe, and get reminders before a warranty expires or a bill is due. Works offline, no sign-up.
 
-SCAN ONCE, DETAILS FILLED
-• Scan paper bills with automatic edge detection and cropping
-• Import photos, screenshots and PDF e-bills, or share them straight from WhatsApp, Gmail or Files
+RECEIPT AND BILL SCANNER
+• Scan paper bills and receipts with automatic edge detection and cropping
+• Import bill photos, screenshots and PDF invoices, or share e-bills from WhatsApp, Gmail or Files
 • Store name, date, total, GST, GSTIN and invoice number are read on your phone and filled in for you
+• Search every bill and receipt by store, item, notes, invoice number or any text on the bill
 
-NEVER MISS A WARRANTY
-• Add products with serial number, model and warranty period; BillBox works out the expiry date
-• Reminders 30, 7 and 1 day before a warranty ends
-• Track extended warranty and AMC, attach the warranty card, and keep a service history with costs
-• Claim card: bill, serial number and service-centre number on one screen, ready to share
+WARRANTY TRACKER
+• Keep warranty cards, serial numbers and purchase bills for your TV, phone, fridge, AC, laptop and every appliance
+• Warranty expiry reminders 30, 7 and 1 day before the warranty ends
+• Track extended warranty and AMC, the service-centre number and repair history with costs
+• Warranty claim card: bill, serial number and service number on one screen, ready to share
 
-PAY EVERY BILL ON TIME
-• Rent, EMIs, electricity, broadband, insurance, subscriptions and document renewals like PUC
-• Reminders before each due date, with autopay tracking
-• "Mark paid" saves the bill and moves the next due date
-• See your fixed costs and subscription spend per month and per year
+BILL REMINDER FOR EVERY DUE DATE
+• Payment reminders for rent, EMI, electricity bill, broadband, insurance premium, subscriptions and renewals like PUC
+• "Mark paid" saves the bill and moves to the next due date, with autopay tracking
+• See your fixed monthly costs and what subscriptions cost you per year
 
-SEE WHERE YOUR MONEY GOES
-• Monthly total with change vs last month
-• Spending by category and a 12-month trend
+EXPENSE TRACKER AND BUDGET
+• Monthly spending with change vs last month
+• Category-wise expenses and a 12-month spending trend
 • Category budgets with alerts at 80% and 100%
 
-TAX AND REIMBURSEMENT READY
-• Mark bills under 80C, 80D, 80G, HRA or LTA
-• Export a PDF with bill photos, or an Excel (CSV) file, for any period, including the Indian financial year
-• Separate business expenses for reimbursement and GST claims
+GST BILLS, INCOME TAX AND REIMBURSEMENT
+• Mark bills under 80C, 80D, 80G, HRA or LTA for income tax
+• Export bills as a PDF with photos or an Excel (CSV) file for ITR filing, office reimbursement and GST claims
+• Reports for any period, including the Indian financial year (April–March)
+• Keep business expenses separate from personal ones
 
-PRIVATE BY DESIGN
-• No account, no sign-up, no ads
-• Your bills stay on your phone; text is read on-device and nothing is uploaded
+PRIVATE AND SECURE
+• No login, no account, no ads
+• Your bills and receipts stay on your phone; text is read on-device and nothing is uploaded
 • Optional app lock with fingerprint, face or screen lock
 • Delete all data any time
 
-Made for India: ₹ amounts with Indian digit grouping, GST fields and the April–March financial year.
+Whether you need a bill organizer for household expenses, a receipt keeper for easy returns, or an invoice manager for office reimbursement, BillBox keeps every bill, receipt and warranty card in one place.
+
+Made for India: ₹ amounts with Indian digit grouping, GST and GSTIN fields, and the April–March financial year.
 ```
+
+Keywords targeted: receipt scanner, warranty tracker, bill reminder, expense tracker, budget, GST bill, invoice, EMI, electricity bill, ITR, reimbursement, bill organizer. Keep them in natural sentences; Play penalises keyword lists, and bans "best", "#1", "free" or "top" in the name.
 
 **Category:** Finance · **Tags:** Budgeting, Personal finance, Productivity
 

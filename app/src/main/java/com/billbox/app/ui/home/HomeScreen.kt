@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.EventRepeat
@@ -44,10 +46,13 @@ import com.billbox.app.ui.LocalContainer
 import com.billbox.app.ui.Routes
 import com.billbox.app.ui.bills.BillRow
 import com.billbox.app.ui.components.CardBox
+import com.billbox.app.ui.components.HelpButton
+import com.billbox.app.ui.components.LocalOpenHelp
 import com.billbox.app.ui.components.SectionTitle
 import com.billbox.app.ui.theme.StatusColors
 import com.billbox.app.util.Dates
 import com.billbox.app.util.Money
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
@@ -61,6 +66,9 @@ fun HomeScreen(nav: NavController, onAdd: (CaptureMode) -> Unit) {
     val products by repo.products.collectAsStateWithLifecycle(emptyList())
     val recurring by repo.recurring.collectAsStateWithLifecycle(emptyList())
     val recent by remember { repo.recentBills(5) }.collectAsStateWithLifecycle(emptyList())
+    // Starts true so the getting-started card does not flash before bills load.
+    val hasBills by remember { repo.recentBills(1).map { it.isNotEmpty() } }.collectAsStateWithLifecycle(true)
+    val openHelp = LocalOpenHelp.current
 
     val today = LocalDate.now()
     val month = YearMonth.from(today)
@@ -89,11 +97,16 @@ fun HomeScreen(nav: NavController, onAdd: (CaptureMode) -> Unit) {
 
     Column(Modifier.fillMaxSize().statusBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         val hour = LocalTime.now().hour
-        Text(
-            when { hour < 12 -> "Good morning"; hour < 17 -> "Good afternoon"; else -> "Good evening" },
-            style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 12.dp),
-        )
-        Text("Your bills, warranties and spending in one place", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f).padding(top = 4.dp)) {
+                Text(
+                    when { hour < 12 -> "Good morning"; hour < 17 -> "Good afternoon"; else -> "Good evening" },
+                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold,
+                )
+                Text("Your bills, warranties and spending in one place", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            HelpButton()
+        }
 
         Surface(
             shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primary,
@@ -115,6 +128,19 @@ fun HomeScreen(nav: NavController, onAdd: (CaptureMode) -> Unit) {
             QuickAction(Icons.Filled.PhotoLibrary, "Gallery", Modifier.weight(1f)) { onAdd(CaptureMode.GALLERY) }
             QuickAction(Icons.Filled.PictureAsPdf, "PDF", Modifier.weight(1f)) { onAdd(CaptureMode.PDF) }
             QuickAction(Icons.Filled.EditNote, "Manual", Modifier.weight(1f)) { onAdd(CaptureMode.MANUAL) }
+        }
+
+        if (!hasBills) {
+            CardBox(Modifier.padding(top = 16.dp), onClick = openHelp) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Lightbulb, null, tint = MaterialTheme.colorScheme.primary)
+                    Column(Modifier.weight(1f).padding(horizontal = 16.dp)) {
+                        Text("New to BillBox?", fontWeight = FontWeight.SemiBold)
+                        Text("See how to scan bills, track warranties and set reminders.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
+                }
+            }
         }
 
         if (attention.isNotEmpty()) {
