@@ -12,3 +12,6 @@
 *.jks
 *.keystore
 keystore.properties
+
+# Release outputs built from Android Studio
+app/release/

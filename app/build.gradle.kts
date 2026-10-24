@@ -13,11 +13,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.billbox.app"
+        applicationId = "com.satyaapps.billbox"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 4
+        versionName = "1.1.2"
     }
 
     // Upload key for Play. keystore.properties is git-ignored; see README "Release build".

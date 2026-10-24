@@ -117,7 +117,7 @@ First test release of BillBox. Please try: scanning a bill, adding a product war
 Debug builds include `DemoDataReceiver`, which replaces all data with the sample set used here:
 
 ```
-adb shell am broadcast -n com.billbox.app/.DemoDataReceiver
+adb shell am broadcast -n com.satyaapps.billbox/com.billbox.app.DemoDataReceiver
 ```
 
 Phone: emulator at 1080×1920 @ 420 dpi. 7-inch: `adb shell wm size 1200x1920` and `wm density 320`. 10-inch: `wm size 2560x1600` and `wm density 320`. Reset with `wm size reset` and `wm density reset`.
