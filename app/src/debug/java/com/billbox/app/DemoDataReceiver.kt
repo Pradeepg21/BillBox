@@ -27,7 +27,7 @@ import java.util.UUID
 
 /**
  * Debug builds only: replaces all data with a realistic sample set for store screenshots.
- * adb shell am broadcast -n com.billbox.app/.DemoDataReceiver
+ * adb shell am broadcast -n com.satya.billbox/com.billbox.app.DemoDataReceiver
  */
 class DemoDataReceiver : BroadcastReceiver() {
 
