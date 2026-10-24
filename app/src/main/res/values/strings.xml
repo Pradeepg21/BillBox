@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BillBox</string>
+    <!-- Public URL of docs/PRIVACY_POLICY.md once hosted; the Settings row is hidden while this is empty. -->
+    <string name="privacy_policy_url" translatable="false"></string>
+</resources>
