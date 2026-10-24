@@ -6,6 +6,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.flow.first
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -139,9 +149,13 @@ private fun AppNav() {
         if (shared.isNotEmpty()) nav.navigate(Routes.editBill(mode = CaptureMode.SHARE))
     }
 
+    // Tablets in landscape get a side rail and a centred, readable content column.
+    val wide = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= 840.dp
+    val showNav = route in tabs.map { it.route }
+
     Scaffold(
         bottomBar = {
-            if (route in tabs.map { it.route }) {
+            if (showNav && !wide) {
                 NavigationBar {
                     tabs.take(2).forEach { TabItem(it, route, nav) }
                     NavigationBarItem(
@@ -152,55 +166,69 @@ private fun AppNav() {
                                 Icon(Icons.Filled.Add, contentDescription = "Add bill")
                             }
                         },
-                        label = { Text("Add") },
                     )
                     tabs.drop(2).forEach { TabItem(it, route, nav) }
                 }
             }
         },
     ) { padding ->
-        NavHost(nav, startDestination = Routes.HOME, modifier = Modifier.padding(bottom = padding.calculateBottomPadding())) {
-            composable(Routes.HOME) { HomeScreen(nav, onAdd = { mode -> nav.navigate(Routes.editBill(mode = mode)) }) }
-            composable(Routes.BILLS) { BillListScreen(nav) }
-            composable(Routes.WARRANTY) { ProductListScreen(nav) }
-            composable(Routes.MORE) { MoreScreen(nav) }
-            composable(
-                "bill/edit?id={id}&mode={mode}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.LongType; defaultValue = 0L },
-                    navArgument("mode") { type = NavType.StringType; defaultValue = CaptureMode.NONE.name },
-                ),
-            ) { entry ->
-                EditBillScreen(
-                    nav,
-                    billId = entry.arguments?.getLong("id") ?: 0L,
-                    mode = CaptureMode.valueOf(entry.arguments?.getString("mode") ?: CaptureMode.NONE.name),
-                )
+        Row(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())) {
+            if (showNav && wide) {
+                NavigationRail(
+                    header = {
+                        FloatingActionButton(onClick = { showAdd = true }, modifier = Modifier.padding(vertical = 12.dp)) {
+                            Icon(Icons.Filled.Add, contentDescription = "Add bill")
+                        }
+                    },
+                ) {
+                    tabs.forEach { RailItem(it, route, nav) }
+                }
             }
-            composable("bill/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-                BillDetailScreen(nav, entry.arguments!!.getLong("id"))
+            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
+                NavHost(nav, startDestination = Routes.HOME, modifier = Modifier.widthIn(max = 760.dp).fillMaxSize()) {
+                    composable(Routes.HOME) { HomeScreen(nav, onAdd = { mode -> nav.navigate(Routes.editBill(mode = mode)) }) }
+                    composable(Routes.BILLS) { BillListScreen(nav) }
+                    composable(Routes.WARRANTY) { ProductListScreen(nav) }
+                    composable(Routes.MORE) { MoreScreen(nav) }
+                    composable(
+                        "bill/edit?id={id}&mode={mode}",
+                        arguments = listOf(
+                            navArgument("id") { type = NavType.LongType; defaultValue = 0L },
+                            navArgument("mode") { type = NavType.StringType; defaultValue = CaptureMode.NONE.name },
+                        ),
+                    ) { entry ->
+                        EditBillScreen(
+                            nav,
+                            billId = entry.arguments?.getLong("id") ?: 0L,
+                            mode = CaptureMode.valueOf(entry.arguments?.getString("mode") ?: CaptureMode.NONE.name),
+                        )
+                    }
+                    composable("bill/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+                        BillDetailScreen(nav, entry.arguments!!.getLong("id"))
+                    }
+                    composable(
+                        "product/edit?id={id}&billId={billId}",
+                        arguments = listOf(
+                            navArgument("id") { type = NavType.LongType; defaultValue = 0L },
+                            navArgument("billId") { type = NavType.LongType; defaultValue = 0L },
+                        ),
+                    ) { entry ->
+                        EditProductScreen(nav, entry.arguments?.getLong("id") ?: 0L, entry.arguments?.getLong("billId") ?: 0L)
+                    }
+                    composable("product/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+                        ProductDetailScreen(nav, entry.arguments!!.getLong("id"))
+                    }
+                    composable(Routes.RECURRING) { RecurringScreen(nav) }
+                    composable(
+                        "recurring/edit?id={id}",
+                        arguments = listOf(navArgument("id") { type = NavType.LongType; defaultValue = 0L }),
+                    ) { entry -> EditRecurringScreen(nav, entry.arguments?.getLong("id") ?: 0L) }
+                    composable(Routes.INSIGHTS) { InsightsScreen(nav) }
+                    composable(Routes.CATEGORIES) { CategoriesScreen(nav) }
+                    composable(Routes.EXPORT) { ExportScreen(nav) }
+                    composable(Routes.SETTINGS) { SettingsScreen(nav) }
+                }
             }
-            composable(
-                "product/edit?id={id}&billId={billId}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.LongType; defaultValue = 0L },
-                    navArgument("billId") { type = NavType.LongType; defaultValue = 0L },
-                ),
-            ) { entry ->
-                EditProductScreen(nav, entry.arguments?.getLong("id") ?: 0L, entry.arguments?.getLong("billId") ?: 0L)
-            }
-            composable("product/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-                ProductDetailScreen(nav, entry.arguments!!.getLong("id"))
-            }
-            composable(Routes.RECURRING) { RecurringScreen(nav) }
-            composable(
-                "recurring/edit?id={id}",
-                arguments = listOf(navArgument("id") { type = NavType.LongType; defaultValue = 0L }),
-            ) { entry -> EditRecurringScreen(nav, entry.arguments?.getLong("id") ?: 0L) }
-            composable(Routes.INSIGHTS) { InsightsScreen(nav) }
-            composable(Routes.CATEGORIES) { CategoriesScreen(nav) }
-            composable(Routes.EXPORT) { ExportScreen(nav) }
-            composable(Routes.SETTINGS) { SettingsScreen(nav) }
         }
     }
 
@@ -238,17 +266,27 @@ private fun AddOption(icon: ImageVector, title: String, subtitle: String, onClic
     )
 }
 
+private fun NavHostController.openTab(route: String) = navigate(route) {
+    popUpTo(graph.findStartDestination().id) { saveState = true }
+    launchSingleTop = true
+    restoreState = true
+}
+
+@Composable
+private fun RailItem(tab: Tab, route: String?, nav: NavHostController) {
+    NavigationRailItem(
+        selected = route == tab.route,
+        onClick = { nav.openTab(tab.route) },
+        icon = { Icon(tab.icon, contentDescription = null) },
+        label = { Text(tab.label) },
+    )
+}
+
 @Composable
 private fun RowScope.TabItem(tab: Tab, route: String?, nav: NavHostController) {
     NavigationBarItem(
         selected = route == tab.route,
-        onClick = {
-            nav.navigate(tab.route) {
-                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
-        },
+        onClick = { nav.openTab(tab.route) },
         icon = { Icon(tab.icon, contentDescription = null) },
         label = { Text(tab.label) },
     )

@@ -1,6 +1,7 @@
 package com.billbox.app.ui.bills
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -94,8 +95,9 @@ fun BillDetailScreen(nav: NavController, billId: Long) {
                 val pager = rememberPagerState { images.size }
                 HorizontalPager(pager, pageSpacing = 8.dp, modifier = Modifier.fillMaxWidth().height(320.dp)) { i ->
                     AsyncImage(
-                        File(images[i].path), contentDescription = "Bill page ${i + 1}", contentScale = ContentScale.Crop,
+                        File(images[i].path), contentDescription = "Bill page ${i + 1}", contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .clickable { context.startActivity(c.files.openIntent(images[i])) },
                     )
                 }

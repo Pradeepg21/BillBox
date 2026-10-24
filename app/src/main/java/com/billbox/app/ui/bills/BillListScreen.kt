@@ -128,7 +128,7 @@ fun BillListScreen(nav: NavController) {
             else -> LazyColumn(Modifier.fillMaxSize()) {
                 item {
                     Text(
-                        "${Money.bills(filtered.size)} ·${Money.format(filtered.sumOf { it.bill.totalPaise })}",
+                        "${Money.bills(filtered.size)} · ${Money.format(filtered.sumOf { it.bill.totalPaise })}",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )

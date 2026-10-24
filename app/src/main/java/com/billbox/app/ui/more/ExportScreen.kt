@@ -74,7 +74,7 @@ fun ExportScreen(nav: NavController) {
             val name = "BillBox-${period.name.lowercase()}-${System.currentTimeMillis() / 1000}"
             val file = if (pdf) c.exporter.pdf(bills, title, name, images) else c.exporter.csv(bills, name)
             context.startActivity(c.exporter.share(file, title))
-            message = "${Money.bills(bills.size)} ·${Money.format(bills.sumOf { it.bill.totalPaise })}"
+            message = "${Money.bills(bills.size)} · ${Money.format(bills.sumOf { it.bill.totalPaise })}"
         } catch (e: Exception) {
             message = "Export failed: ${e.message}"
         } finally {
