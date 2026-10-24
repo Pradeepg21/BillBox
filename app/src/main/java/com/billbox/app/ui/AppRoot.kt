@@ -4,7 +4,8 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -67,6 +68,10 @@ import androidx.navigation.navArgument
 import com.billbox.app.AppContainer
 import com.billbox.app.PendingShare
 import com.billbox.app.ui.bills.BillDetailScreen
+import com.billbox.app.ui.components.LocalOpenHelp
+import com.billbox.app.ui.help.HelpScreen
+import com.billbox.app.ui.help.WelcomeScreen
+import com.billbox.app.ui.help.helpTopicFor
 import com.billbox.app.ui.bills.BillListScreen
 import com.billbox.app.ui.bills.EditBillScreen
 import com.billbox.app.ui.home.HomeScreen
@@ -103,6 +108,8 @@ object Routes {
     const val CATEGORIES = "categories"
     const val EXPORT = "export"
     const val SETTINGS = "settings"
+    const val WELCOME = "welcome"
+    fun help(topic: String = "") = "help?topic=$topic"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
@@ -121,8 +128,25 @@ fun AppRoot(container: AppContainer, lockedFlow: StateFlow<Boolean?>, onUnlock: 
         when (locked) {
             null -> Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {}
             true -> LockScreen(onUnlock)
-            false -> AppNav()
+            false -> FirstRunGate()
         }
+    }
+}
+
+/** Shows the welcome tour once, then asks for notification permission (Android 13+) so reminders can be shown. */
+@Composable
+private fun FirstRunGate() {
+    val settings = LocalContainer.current.settings
+    val onboarded by settings.onboarded.collectAsStateWithLifecycle(null)
+    val scope = rememberCoroutineScope()
+    val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    when (onboarded) {
+        null -> Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {}
+        false -> WelcomeScreen(onDone = {
+            scope.launch { settings.setOnboarded() }
+            if (Build.VERSION.SDK_INT >= 33) notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        })
+        true -> AppNav()
     }
 }
 
@@ -134,16 +158,6 @@ private fun AppNav() {
     val route = backStack?.destination?.route
     var showAdd by remember { mutableStateOf(false) }
 
-    // Ask once for notification permission (Android 13+) so reminders can be shown.
-    val settings = LocalContainer.current.settings
-    val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
-    LaunchedEffect(Unit) {
-        if (!settings.onboarded.first()) {
-            settings.setOnboarded()
-            if (Build.VERSION.SDK_INT >= 33) notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-
     val shared by PendingShare.uris.collectAsStateWithLifecycle()
     LaunchedEffect(shared) {
         if (shared.isNotEmpty()) nav.navigate(Routes.editBill(mode = CaptureMode.SHARE))
@@ -153,80 +167,89 @@ private fun AppNav() {
     val wide = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= 840.dp
     val showNav = route in tabs.map { it.route }
 
-    Scaffold(
-        bottomBar = {
-            if (showNav && !wide) {
-                NavigationBar {
-                    tabs.take(2).forEach { TabItem(it, route, nav) }
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { showAdd = true },
-                        icon = {
-                            FilledIconButton(onClick = { showAdd = true }, modifier = Modifier.size(48.dp)) {
+    val openHelp = remember(nav) { { nav.navigate(Routes.help(helpTopicFor(nav.currentDestination?.route))) } }
+
+    CompositionLocalProvider(LocalOpenHelp provides openHelp) {
+        Scaffold(
+            bottomBar = {
+                if (showNav && !wide) {
+                    NavigationBar {
+                        tabs.take(2).forEach { TabItem(it, route, nav) }
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { showAdd = true },
+                            icon = {
+                                FilledIconButton(onClick = { showAdd = true }, modifier = Modifier.size(48.dp)) {
+                                    Icon(Icons.Filled.Add, contentDescription = "Add bill")
+                                }
+                            },
+                        )
+                        tabs.drop(2).forEach { TabItem(it, route, nav) }
+                    }
+                }
+            },
+        ) { padding ->
+            Row(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())) {
+                if (showNav && wide) {
+                    NavigationRail(
+                        header = {
+                            FloatingActionButton(onClick = { showAdd = true }, modifier = Modifier.padding(vertical = 12.dp)) {
                                 Icon(Icons.Filled.Add, contentDescription = "Add bill")
                             }
                         },
-                    )
-                    tabs.drop(2).forEach { TabItem(it, route, nav) }
+                    ) {
+                        tabs.forEach { RailItem(it, route, nav) }
+                    }
                 }
-            }
-        },
-    ) { padding ->
-        Row(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding())) {
-            if (showNav && wide) {
-                NavigationRail(
-                    header = {
-                        FloatingActionButton(onClick = { showAdd = true }, modifier = Modifier.padding(vertical = 12.dp)) {
-                            Icon(Icons.Filled.Add, contentDescription = "Add bill")
+                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
+                    NavHost(nav, startDestination = Routes.HOME, modifier = Modifier.widthIn(max = 760.dp).fillMaxSize()) {
+                        composable(Routes.HOME) { HomeScreen(nav, onAdd = { mode -> nav.navigate(Routes.editBill(mode = mode)) }) }
+                        composable(Routes.BILLS) { BillListScreen(nav) }
+                        composable(Routes.WARRANTY) { ProductListScreen(nav) }
+                        composable(Routes.MORE) { MoreScreen(nav) }
+                        composable(
+                            "bill/edit?id={id}&mode={mode}",
+                            arguments = listOf(
+                                navArgument("id") { type = NavType.LongType; defaultValue = 0L },
+                                navArgument("mode") { type = NavType.StringType; defaultValue = CaptureMode.NONE.name },
+                            ),
+                        ) { entry ->
+                            EditBillScreen(
+                                nav,
+                                billId = entry.arguments?.getLong("id") ?: 0L,
+                                mode = CaptureMode.valueOf(entry.arguments?.getString("mode") ?: CaptureMode.NONE.name),
+                            )
                         }
-                    },
-                ) {
-                    tabs.forEach { RailItem(it, route, nav) }
-                }
-            }
-            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
-                NavHost(nav, startDestination = Routes.HOME, modifier = Modifier.widthIn(max = 760.dp).fillMaxSize()) {
-                    composable(Routes.HOME) { HomeScreen(nav, onAdd = { mode -> nav.navigate(Routes.editBill(mode = mode)) }) }
-                    composable(Routes.BILLS) { BillListScreen(nav) }
-                    composable(Routes.WARRANTY) { ProductListScreen(nav) }
-                    composable(Routes.MORE) { MoreScreen(nav) }
-                    composable(
-                        "bill/edit?id={id}&mode={mode}",
-                        arguments = listOf(
-                            navArgument("id") { type = NavType.LongType; defaultValue = 0L },
-                            navArgument("mode") { type = NavType.StringType; defaultValue = CaptureMode.NONE.name },
-                        ),
-                    ) { entry ->
-                        EditBillScreen(
-                            nav,
-                            billId = entry.arguments?.getLong("id") ?: 0L,
-                            mode = CaptureMode.valueOf(entry.arguments?.getString("mode") ?: CaptureMode.NONE.name),
-                        )
+                        composable("bill/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+                            BillDetailScreen(nav, entry.arguments!!.getLong("id"))
+                        }
+                        composable(
+                            "product/edit?id={id}&billId={billId}",
+                            arguments = listOf(
+                                navArgument("id") { type = NavType.LongType; defaultValue = 0L },
+                                navArgument("billId") { type = NavType.LongType; defaultValue = 0L },
+                            ),
+                        ) { entry ->
+                            EditProductScreen(nav, entry.arguments?.getLong("id") ?: 0L, entry.arguments?.getLong("billId") ?: 0L)
+                        }
+                        composable("product/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
+                            ProductDetailScreen(nav, entry.arguments!!.getLong("id"))
+                        }
+                        composable(Routes.RECURRING) { RecurringScreen(nav) }
+                        composable(
+                            "recurring/edit?id={id}",
+                            arguments = listOf(navArgument("id") { type = NavType.LongType; defaultValue = 0L }),
+                        ) { entry -> EditRecurringScreen(nav, entry.arguments?.getLong("id") ?: 0L) }
+                        composable(Routes.INSIGHTS) { InsightsScreen(nav) }
+                        composable(Routes.CATEGORIES) { CategoriesScreen(nav) }
+                        composable(Routes.EXPORT) { ExportScreen(nav) }
+                        composable(Routes.SETTINGS) { SettingsScreen(nav) }
+                        composable(
+                            "help?topic={topic}",
+                            arguments = listOf(navArgument("topic") { type = NavType.StringType; defaultValue = "" }),
+                        ) { entry -> HelpScreen(nav, entry.arguments?.getString("topic").orEmpty()) }
+                        composable(Routes.WELCOME) { WelcomeScreen(onDone = { nav.popBackStack() }) }
                     }
-                    composable("bill/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-                        BillDetailScreen(nav, entry.arguments!!.getLong("id"))
-                    }
-                    composable(
-                        "product/edit?id={id}&billId={billId}",
-                        arguments = listOf(
-                            navArgument("id") { type = NavType.LongType; defaultValue = 0L },
-                            navArgument("billId") { type = NavType.LongType; defaultValue = 0L },
-                        ),
-                    ) { entry ->
-                        EditProductScreen(nav, entry.arguments?.getLong("id") ?: 0L, entry.arguments?.getLong("billId") ?: 0L)
-                    }
-                    composable("product/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) { entry ->
-                        ProductDetailScreen(nav, entry.arguments!!.getLong("id"))
-                    }
-                    composable(Routes.RECURRING) { RecurringScreen(nav) }
-                    composable(
-                        "recurring/edit?id={id}",
-                        arguments = listOf(navArgument("id") { type = NavType.LongType; defaultValue = 0L }),
-                    ) { entry -> EditRecurringScreen(nav, entry.arguments?.getLong("id") ?: 0L) }
-                    composable(Routes.INSIGHTS) { InsightsScreen(nav) }
-                    composable(Routes.CATEGORIES) { CategoriesScreen(nav) }
-                    composable(Routes.EXPORT) { ExportScreen(nav) }
-                    composable(Routes.SETTINGS) { SettingsScreen(nav) }
                 }
             }
         }

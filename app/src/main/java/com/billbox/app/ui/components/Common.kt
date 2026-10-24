@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Devices
@@ -52,6 +53,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -100,14 +102,35 @@ fun CategoryBadge(category: Category?, size: Int = 40) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackTopBar(title: String, onBack: () -> Unit, actions: @Composable () -> Unit = {}) {
+fun BackTopBar(title: String, onBack: () -> Unit, showHelp: Boolean = true, actions: @Composable () -> Unit = {}) {
     TopAppBar(
         title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         navigationIcon = {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
         },
-        actions = { actions() },
+        actions = {
+            actions()
+            if (showHelp) HelpButton()
+        },
     )
+}
+
+/** Opens the help guide at the topic for the current screen; provided by the app's navigation host. */
+val LocalOpenHelp = staticCompositionLocalOf<() -> Unit> { {} }
+
+@Composable
+fun HelpButton() {
+    val openHelp = LocalOpenHelp.current
+    IconButton(onClick = openHelp) { Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Help") }
+}
+
+/** Title row for the top-level tabs, with the help button on the right. */
+@Composable
+fun TabHeader(title: String) {
+    Row(Modifier.fillMaxWidth().padding(start = 16.dp, top = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        HelpButton()
+    }
 }
 
 /** Screen scaffold; the outer app scaffold already pads for the bottom bar and navigation bar. */

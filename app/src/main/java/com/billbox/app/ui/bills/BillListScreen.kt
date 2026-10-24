@@ -48,6 +48,7 @@ import com.billbox.app.ui.CaptureMode
 import com.billbox.app.ui.LocalContainer
 import com.billbox.app.ui.Routes
 import com.billbox.app.ui.components.CategoryBadge
+import com.billbox.app.ui.components.TabHeader
 import com.billbox.app.ui.components.EmptyState
 import com.billbox.app.util.Dates
 import com.billbox.app.util.Money
@@ -87,7 +88,7 @@ fun BillListScreen(nav: NavController) {
     val grouped = remember(filtered) { filtered.groupBy { YearMonth.from(it.bill.billDate) } }
 
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        Text("Bills", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(16.dp, 12.dp, 16.dp, 4.dp))
+        TabHeader("Bills")
         OutlinedTextField(
             value = query, onValueChange = { query = it },
             placeholder = { Text("Search store, item, notes, invoice…") },
